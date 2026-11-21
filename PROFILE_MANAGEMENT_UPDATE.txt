@@ -1,0 +1,54 @@
+SONPUR DENTAL CLINIC - PROFILE MANAGEMENT UPDATE
+
+Included features
+=================
+
+PATIENT SELF-SERVICE PROFILE
+- Edit full name, 10-digit mobile number and optional email from the patient dashboard.
+- Change password after entering the current password.
+- A new password is optional; leaving it blank keeps the current password.
+- Patient passwords remain BCrypt hashes.
+- Changing the patient's mobile number returns a refreshed patient JWT.
+- Linked appointments are synchronized to the updated patient name/mobile number.
+- Unlinked legacy bookings for the old mobile number are attached to that patient account.
+
+ADMINISTRATOR PROFILE
+- Edit admin username, full name, email and mobile number.
+- Change admin password after entering the current password.
+- The API returns a refreshed admin JWT after profile changes.
+- Admin profile and password are stored in the MySQL admin_accounts table.
+- ADMIN_USERNAME and ADMIN_PASSWORD from .env seed the first admin only when admin_accounts is empty.
+- After the first seed, database credentials are authoritative; changing .env does not overwrite a saved admin profile.
+
+ADMIN PATIENT VIEW
+- Admin -> Patients displays registered patient names, mobile numbers, email addresses and account creation dates.
+- Patient accounts are view-only in the admin panel; the administrator cannot edit patient profile details or reset patient passwords.
+
+ADMIN SELF-MANAGEMENT
+- Use the “Update my details” tab to edit the currently signed-in administrator account only.
+- Admin changes require the current password and are stored in the MySQL admin_accounts table.
+
+API
+===
+Patient:
+- GET /api/patient/me
+- PUT /api/patient/me
+  JSON: { fullName, phone, email, currentPassword, newPassword }
+  newPassword is optional; currentPassword is required.
+
+Admin:
+- GET /api/admin/me
+- PUT /api/admin/me
+  JSON: { username, fullName, email, phone, currentPassword, newPassword }
+  newPassword is optional; currentPassword is required.
+
+Database
+========
+Hibernate ddl-auto=update adds the patient email column and admin_accounts table without
+resetting existing MySQL data. Do not run `docker compose down -v` during an upgrade.
+
+Installation
+============
+Extract this ZIP over a separate project folder, preserve your existing .env file, then
+run start.bat. The script compiles the backend with Maven in Docker, builds the images,
+and starts the services.

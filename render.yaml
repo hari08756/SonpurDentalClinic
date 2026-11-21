@@ -1,0 +1,71 @@
+services:
+  # Private MySQL service. Never expose port 3306 to the public internet.
+  - type: pserv
+    name: sonpur-clinic-mysql
+    runtime: image
+    image:
+      url: docker.io/library/mysql:8.4
+    region: singapore
+    plan: 0.5c-512mb
+    disk:
+      name: sonpur-mysql-data
+      mountPath: /var/lib/mysql
+      sizeGB: 10
+    envVars:
+      - key: MYSQL_ROOT_PASSWORD
+        sync: false
+      - key: MYSQL_DATABASE
+        value: sonpur_clinic
+      - key: TZ
+        value: Asia/Kolkata
+
+  # Public HTTPS API. The uploaded QR, logo, and payment proof files live on this disk.
+  - type: web
+    name: sonpur-clinic-api
+    runtime: docker
+    region: singapore
+    plan: 1c-2g
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    healthCheckPath: /api/public/settings
+    disk:
+      name: sonpur-clinic-uploads
+      mountPath: /var/data
+      sizeGB: 2
+    envVars:
+      - key: DB_URL
+        value: jdbc:mysql://sonpur-clinic-mysql:3306/sonpur_clinic?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Kolkata
+      - key: DB_USERNAME
+        value: root
+      - key: DB_PASSWORD
+        sync: false
+      - key: ADMIN_USERNAME
+        value: admin
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRATION_HOURS
+        value: "12"
+      - key: UPLOAD_DIR
+        value: /var/data/uploads
+      - key: APP_ALLOWED_ORIGINS
+        sync: false
+      - key: TZ
+        value: Asia/Kolkata
+      - key: JAVA_TOOL_OPTIONS
+        value: -Xms128m -Xmx1024m -Duser.timezone=Asia/Kolkata
+
+  # Public static React website.
+  - type: web
+    name: sonpur-clinic-web
+    runtime: static
+    buildCommand: cd frontend && npm install --no-audit --no-fund && npm run build
+    staticPublishPath: ./frontend/dist
+    envVars:
+      - key: VITE_API_BASE
+        sync: false
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html

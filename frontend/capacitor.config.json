@@ -1,0 +1,8 @@
+{
+  "appId": "com.sonpur.dentalclinic",
+  "appName": "Sonpur Dental Clinic",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "https"
+  }
+}

@@ -1,0 +1,12 @@
+Sonpur Dental Clinic - Patient Cancellation HTTP 500 Fix
+
+Root cause from backend logs:
+IllegalArgumentException: Name for argument of type [java.lang.Long] not specified, and parameter name information not available via reflection.
+
+Fixes:
+1. PatientController.cancel now explicitly declares @PathVariable("id"). This removes reliance on Java parameter-name reflection for the cancellation route.
+2. Maven compiler plugin now enables <parameters>true</parameters> as a project-wide safeguard for Spring MVC method argument binding.
+
+No database schema, .env, MySQL volume, uploads, booking/payment records, or cancellation business logic were changed by this patch.
+
+Apply by extracting this full ZIP over a backup copy of the existing project, preserving the current .env file. Then run start.bat. Do not run docker compose down -v.

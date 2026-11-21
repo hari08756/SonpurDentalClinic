@@ -1,0 +1,54 @@
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: sonpur-clinic-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: sonpur_clinic
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-LocalOnly_DB_Password_2026}
+      TZ: Asia/Kolkata
+    ports:
+      - "3307:3306"
+    volumes:
+      - sonpur_mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p${DB_ROOT_PASSWORD:-LocalOnly_DB_Password_2026}"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  backend:
+    build: ./backend
+    container_name: sonpur-clinic-api
+    restart: unless-stopped
+    environment:
+      DB_URL: jdbc:mysql://mysql:3306/sonpur_clinic?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Kolkata
+      DB_USERNAME: root
+      DB_PASSWORD: ${DB_ROOT_PASSWORD:-LocalOnly_DB_Password_2026}
+      ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-ChangeMe@123}
+      JWT_SECRET: ${JWT_SECRET:-c29ucHVyLWNsaW5pYy1wcm9kdWN0aW9uLXNlY3JldC1rZXktY2hhbmdlLW1lLW5vdC1mb3ItcHJvZA==}
+      JWT_EXPIRATION_HOURS: 12
+      UPLOAD_DIR: /app/uploads
+      TZ: Asia/Kolkata
+      JAVA_TOOL_OPTIONS: -Duser.timezone=Asia/Kolkata
+    ports:
+      - "8080:8080"
+    volumes:
+      - sonpur_uploads:/app/uploads
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  frontend:
+    build: ./frontend
+    container_name: sonpur-clinic-web
+    restart: unless-stopped
+    ports:
+      - "8081:80"
+    depends_on:
+      - backend
+
+volumes:
+  sonpur_mysql_data:
+  sonpur_uploads:

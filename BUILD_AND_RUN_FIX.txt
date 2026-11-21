@@ -1,0 +1,34 @@
+SONPUR DENTAL CLINIC - DOCKER BUILD FIX
+
+Why this version is different:
+- Your diagnostic Maven container run successfully created
+  backend/target/sonpur-dental-clinic-api-1.0.0.jar.
+- This version uses that same working Maven container command to build the JAR.
+- The runtime Dockerfile then copies the JAR into the Java 21 runtime image.
+- backend/.dockerignore no longer excludes the generated JAR.
+
+Recommended:
+1. Extract this project/update into the project root.
+2. Preserve your existing .env file.
+3. Run start.bat.
+
+Manual equivalent from the project root:
+  docker run --rm -v "%cd%\backend:/workspace" -w /workspace maven:3.9.9-eclipse-temurin-21 mvn -B -DskipTests clean package
+  docker compose build
+  docker compose up -d
+  docker compose logs --tail=120 backend
+
+Database protection:
+- Do not run docker compose down -v.
+- This update does not remove the sonpur_mysql_data or sonpur_uploads volumes.
+
+
+PATIENT + ADMIN PROFILE UPDATE
+
+- Patient accounts can update their name, mobile number and email from /account.
+- The patient must provide the current password; a new password is optional.
+- When a patient's mobile number changes, the patient's linked appointment contact details are synchronized.
+- Admins can update their own username, name, email, phone and optional password from Admin profile.
+- The first administrator is seeded from ADMIN_USERNAME and ADMIN_PASSWORD only when admin_accounts is empty. Later changes are persisted in MySQL and survive restarts.
+- Admins can edit patient details and optionally reset a patient's password from the Patients tab.
+- Patient and admin passwords are stored as BCrypt hashes.

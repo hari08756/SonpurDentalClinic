@@ -1,0 +1,27 @@
+.env
+node_modules/
+dist/
+target/
+uploads/
+.DS_Store
+
+# Include the prebuilt backend JAR used by Render Docker builds; ignore other build output.
+!backend/target/
+backend/target/*
+!backend/target/sonpur-dental-clinic-api-1.0.0.jar
+
+# Local production URL used only while building the Android APK.
+frontend/.env.production
+
+# Private patient/payment backups and generated Android build artifacts.
+backups/
+frontend/android/
+frontend/.gradle/
+*.jks
+*.keystore
+.env
+.env.*
+!.env.example
+backups/
+*.sql
+*.tar.gz

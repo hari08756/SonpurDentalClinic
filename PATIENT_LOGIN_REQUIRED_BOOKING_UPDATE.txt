@@ -1,0 +1,23 @@
+SONPUR DENTAL CLINIC - PATIENT-ONLY BOOKING UPDATE
+
+Rules implemented
+==================
+1. Public visitors may view clinic settings, QR/logo, and available slots.
+2. /book requires an authenticated PATIENT session. Unauthenticated visitors are redirected to /login and may continue to /book after successful login/registration.
+3. Public POST /api/public/bookings is disabled and returns HTTP 401.
+4. Only POST /api/patient/bookings creates a new appointment. The backend requires a patient JWT, verifies the posted mobile matches the logged-in account, and uses the account name/phone as authoritative values.
+5. Public payment-proof upload is disabled. Payment proof is submitted through /api/patient/bookings/{bookingCode}/payment-proof and ownership is checked against the logged-in patient.
+6. Registration requires exactly one valid 10-digit Indian mobile number. patient_accounts.phone is unique, the service performs a duplicate check, and a database race/duplicate is returned as HTTP 409. Existing duplicate-account registrations are instructed to log in.
+7. Existing pre-upgrade guest bookings with a phone number are linked to that patient when they register with the same phone.
+
+Testing checklist
+=================
+- Open /book in a private/incognito browser: expected redirect to /login.
+- Register phone X: expected account created and redirected to /book.
+- Register phone X again: expected HTTP 409 and login guidance.
+- Login as phone X, book: expected appointment linked to the X account.
+- POST /api/public/bookings without token: expected HTTP 401.
+- Try payment proof with another patient's token: expected HTTP 404.
+- Book under another phone/name by changing browser request: expected HTTP 403 for phone mismatch; server uses account name for the appointment.
+
+No database reset is required. Hibernate schema update and existing volumes remain in use. Do not use docker compose down -v.
